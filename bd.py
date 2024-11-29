@@ -16,7 +16,7 @@ def catch_exec(code, globals=None, locals=None) -> str:
     """Catch calls to builtins.exec. and if deemed `imsafe`"""
     # if "__name__" is not defined, this is user-defined code which is unsafe.
     if not globals:
-        print(f"🤖 Intercepted exec:\r\n\r\n```\r\n{code}\r\n```\r\n")
+        print(f"🤖 Intercepted call to `exec` with the following payload:\r\n\r\n```\r\n{code}\r\n```\r\n")
         return
     # manually allowlisted exec contexts:
     elif globals["__name__"] in [
@@ -42,7 +42,7 @@ def catch_exec(code, globals=None, locals=None) -> str:
     elif globals["__name__"] in [
         "base64"
     ]:
-        print(f"🤖 ❗ Executing in the context of {globals['__name__']}")
+        print(f"🤖 ❗ Permitted call to `exec` in the context of {globals['__name__']}")
         return unsafe_exec(code, globals=globals, locals=locals)
     else:
         raise BDError(f"🤖 I don't want to exec in {globals['__name__']}")
@@ -54,7 +54,7 @@ builtins.exec = catch_exec
 def review_imports(imports: list[ast.Import]) -> None:
     if len(imports) > 0:
         if len(imports[0].names) > 1:
-            raise BDError("I found too many imports :(. Wowee")
+            raise BDError("🤖 I found too many imports :(. Wowee")
         alias = imports[0].names[0]
         print(
             f"🤖 This sample imports {alias.name} as {alias.asname if alias.asname else alias.name}"
@@ -82,7 +82,7 @@ def triage_ast(sample):
     expr = expressions[0].value
     for expr in [x.value for x in expressions]:
         if not isinstance(expr, ast.Call):
-            raise BDError(f"I can't handle {type(expr)}")
+            raise BDError(f"🤖 I can't handle {type(expr)}")
         if expr.func.id not in ["print", "exec"]:
             raise BDError(
                 f"🤖 I can't handle anything except exec and print for now. Found {expr.func.id}"
